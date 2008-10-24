@@ -1,0 +1,5 @@
+#!/bin/sh
+KL_PLUGINS_PATH=/var/lib/kav/ppl
+LD_LIBRARY_PATH=/opt/KAV_SDK/lib:$KL_PLUGINS_PATH:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH KL_PLUGINS_PATH
+./aekavd "$@"

@@ -1,0 +1,4 @@
+*.o
+*.d
+aekavd
+test-read-config
