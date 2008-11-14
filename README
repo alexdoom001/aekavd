@@ -1,28 +1,31 @@
 Example of Kas antivirus daemon for Linux. KAV Daemon
 
-1. TCP Daemon, one can specify IP and port, by default localhost:7310 will be used
+1. TCP Daemon, one can specify IP and port, by default localhost:8310 will be used
 
-2. Uses KAV SDK to virus scan specified files.
+2. UNIX-socket daemon, one can specify socket, by default /var/run/aekavd.socket will be used
 
-3. Supports subset of the clamd commands:
+3. Uses KAV SDK to virus scan specified files.
+
+4. Supports subset of the clamd commands:
 
    SESSION\n  -- no response,
    PING\n     -- PONG\n,
-   SCAN path  -- path: OK\n
-              -- ?
-   END        -- no response
+   SCAN path  -- path: OK\n or path: Malware FOUND\n
+   (n\z)FILDES(n\z)   -- open file descriptor
+   (n\z)INSTREAM(n\z) -- data stream
+   \n         -- end session
+   END        -- end session
 
-4. Forks for every new connection.
+5. Forks for every new connection.
 
-5. If gets an unknown command just closes TCP session.
+6. If gets an unknown command just closes TCP session.
 
-6. Uses syslog for logging, DAEMON facility
+7. Uses syslog for logging, DAEMON facility
 
-7. No configuration file, just command line options:
+8. No configuration file, just command line options:
 
-   --version       (-v)
-   --help          (-h)
-   --ip = X.X.X.X  (-i X.X.X.X)
-   --port = number (-p number)
-   --no-detach                   do not detach from console, used for debugging
+  -c, --config=FILE          Use file FILE as config file. Default /etc/aekavd.conf
+  -?, --help                 Give this help list
+      --usage                Give a short usage message
+  -V, --version              Print program version
 

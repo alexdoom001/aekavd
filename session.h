@@ -12,11 +12,12 @@
 
 
 #include <string>
+#include <stdint.h>
 
 
 namespace AEKAVD {
-
-    extern void handle_session(int, bool);
+    extern void handle_session(int, uint32_t);
+    extern int ctl_pipe[2];
 }
 
 

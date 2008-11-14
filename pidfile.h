@@ -19,7 +19,7 @@ namespace AEKAVD {
     class Pid_file {
     public:
         Pid_file(const std::string&);
-        ~Pid_file();
+        void Pid_file_remove();
 
     private:
         std::string fn;

@@ -27,6 +27,11 @@ namespace AEKAVD {
     extern void kav_close();
     extern void kav_set_info(Kav_info&);
     extern std::string kav_scan_file(const std::string& filename, bool logviruses);
+    extern std::string kav_scan_file(int);
+    extern void *kav_reload_database(void*);
+
+    extern bool reload_database_processing;
+    extern pthread_mutex_t reload_database_mutex;
 }
 
 

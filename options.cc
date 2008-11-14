@@ -17,9 +17,11 @@
 #include <stdexcept>
 #include <fstream>
 #include <sstream>
+#include <linux/un.h>
 #include "error.h"
 #include "options.h"
 
+#define STREAM_LIMIT 1024 * 1024 * 128
 
 namespace AEKAVD {
 
@@ -35,7 +37,9 @@ namespace AEKAVD {
         KW_FIRST       = 0,
         KW_LISTEN_ADDR = KW_FIRST,
         KW_LISTEN_PORT,
-        KW_KAV_LICENCE_PATH,
+        KW_UNIX_SOCKET,
+        KW_STREAM_LIMIT,
+        KW_KAV_LICENCE_PATH, 
         KW_KAV_BASES_PATH,
         KW_DAEMON_MODE,
         KW_PID_FILE,
@@ -66,6 +70,8 @@ namespace AEKAVD {
     static void  set_option_value(int, const std::string&, Options*);
     static void  set_listen_addr(const std::string&, Options*);
     static void  set_listen_port(const std::string&, Options*);
+    static void  set_unix_socket(const std::string&, Options*);
+    static void  set_stream_limit(const std::string&, Options*);
     static void  set_daemon_mode(const std::string&, Options*);
     static void  set_log_found_viruses(const std::string&, Options*);
     static void  set_syslog_perror(const std::string&, Options*);
@@ -76,12 +82,14 @@ namespace AEKAVD {
     static std::string keyword_str[KW_NUM] = {
         std::string("listen-addr"),             // KW_LISTEN_ADDR
         std::string("listen-port"),             // KW_LISTEN_PORT,
-        std::string("kav-licence-path"),        // KW_KAV_LICENCE_PATH,
-        std::string("kav-bases-path"),          // KW_KAV_BASES_PATH,
-        std::string("daemon-mode"),             // KW_DAEMON_MODE,
-        std::string("pid-file"),                // KW_PID_FILE,
-        std::string("syslog-perror"),           // KW_SYSLOG_PERROR,
-        std::string("syslog-facility"),         // KW_SYSLOG_FACILITY,
+        std::string("listen-unix-socket"),      // KW_UNIX_SOCKET
+        std::string("stream-limit"),            // KW_STREAM_LIMIT
+        std::string("kav-licence-path"),        // KW_KAV_LICENCE_PATH, 
+        std::string("kav-bases-path"),          // KW_KAV_BASES_PATH,   
+        std::string("daemon-mode"),             // KW_DAEMON_MODE,      
+        std::string("pid-file"),                // KW_PID_FILE,         
+        std::string("syslog-perror"),           // KW_SYSLOG_PERROR,    
+        std::string("syslog-facility"),          // KW_SYSLOG_FACILITY,
         std::string("kav-info-file"),           // KW_KAV_INFO_FILE
         std::string("log-found-viruses")        // KW_LOG_FOUND_VIRUSES
     };
@@ -120,16 +128,18 @@ namespace AEKAVD {
 
 
 AEKAVD::Options::Options(const std::string& fn)
-    : naddr(htonl(INADDR_LOOPBACK)),
-      port(8310),
+    : naddr(0),
+      port(0),
+      unix_socket("/var/run/aekavd.socket"),
+      streamlimit(1024 * 1024 * 64),
       isdaemon(true),
       kavkeypath("/var/lib/kav/licences"),
       kavbasepath("/var/lib/kav/bases"),
       pidfile("/var/run/aekavd.pid"),
       syslogopts(LOG_PID|LOG_NDELAY),
       syslogfacility(LOG_DAEMON),
-      kavinfofile("/tmp/kav.info"),
-      logfoundviruses(true)
+      kavinfofile(""),
+      logfoundviruses(false)
 {
     parse_config_file(fn, this);
 }
@@ -175,6 +185,16 @@ void AEKAVD::Options::set_listen_addr(uint32_t v)
 void AEKAVD::Options::set_listen_port(uint16_t v)
 {
     port = v;
+}
+
+void AEKAVD::Options::set_socket(const std::string& s)
+{
+    unix_socket = s;
+}
+
+void AEKAVD::Options::set_stream_limit(uint32_t limit)
+{
+    streamlimit = limit;
 }
 
 void AEKAVD::Options::set_kav_info_file(const std::string& v)
@@ -273,6 +293,12 @@ void AEKAVD::set_option_value(int keyword, const std::string& val, Options *opti
     case KW_LISTEN_PORT:
         set_listen_port(val, options);
         break;
+    case KW_UNIX_SOCKET:
+        set_unix_socket(val, options);
+        break;
+    case KW_STREAM_LIMIT:
+        set_stream_limit(val, options);
+        break;
     case KW_KAV_LICENCE_PATH:
         options->set_kav_key_path(val);
         break;
@@ -319,6 +345,23 @@ void AEKAVD::set_listen_port(const std::string& val, Options *options)
         error<std::invalid_argument>("port value is too big", val);
 
     options->set_listen_port(uint16_t(v));
+}
+
+void AEKAVD::set_unix_socket(const std::string& val, Options *options)
+{
+    if(val.size() > UNIX_PATH_MAX)
+        error<std::invalid_argument>("too long unix socket", val);
+
+    options->set_socket(val);
+}
+
+void AEKAVD::set_stream_limit(const std::string& val, Options *options)
+{
+    unsigned long v = strtoul(val.c_str(), 0, 0);
+    if(v > STREAM_LIMIT)
+        error<std::invalid_argument>("stream limit value is too big", val);
+
+    options->set_stream_limit(uint32_t(v));
 }
 
 void AEKAVD::set_daemon_mode(const std::string& val, Options *options)

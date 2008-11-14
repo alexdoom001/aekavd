@@ -8,15 +8,21 @@
 //
 
 
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
 #include <syslog.h>
 #include <string>
 #include <sstream>
 #include <iomanip>
 #include <stdexcept>
+#include <sys/stat.h>
 #include <sdk8_unix_interface.h>
 #include "error.h"
 #include "options.h"
 #include "kav.h"
+
+#include "posixistream.h"
 
 #ifdef UNICODE
 #error UNICODE defined!
@@ -107,7 +113,7 @@ void AEKAVD::kav_set_info(Kav_info& kavinfo)
 
 std::string AEKAVD::kav_scan_file(const std::string& fn, bool logviruses)
 {
-    unsigned long  scanmode = KAV_O_M_PACKED | KAV_O_M_ARCHIVED | KAV_O_M_HEURISTIC_LEVEL_SHALLOW;
+    unsigned long  scanmode = KAV_O_M_PACKED | KAV_O_M_ARCHIVED | KAV_O_M_MAILPLAIN | KAV_O_M_HEURISTIC_LEVEL_SHALLOW;
     unsigned long  prty     = 10;
     KAV_RESULT     res      = KAV_S_R_NONSCANNED;
 
@@ -126,6 +132,33 @@ std::string AEKAVD::kav_scan_file(const std::string& fn, bool logviruses)
         syslog(LOG_DEBUG, "session: file scan finished; result: %s; returned to client: %s", resstr.first.c_str(), resstr.second.c_str());
 
     return fn + ": " + resstr.second;
+}
+
+std::string AEKAVD::kav_scan_file(int fd)
+{
+    unsigned long  scanmode = KAV_O_M_PACKED | KAV_O_M_ARCHIVED | KAV_O_M_MAILPLAIN | KAV_O_M_HEURISTIC_LEVEL_SHALLOW;
+    unsigned long  prty     = 10;
+    KAV_RESULT     res      = KAV_S_R_NONSCANNED;
+    HRESULT hr;
+    char fdstr[32];
+
+    posixIStream stream(fd);
+    hr = kaveScanStream(&stream, prty, scanmode, KAV_SKIP, INFINITE, 0, 0, &res);
+
+    if (SUCCEEDED(hr))
+        syslog(LOG_DEBUG, "session: file scanned successfully");
+    else {
+        std::ostringstream s;
+        s << "session: file scan failed; error code: " << hr;
+        throw std::runtime_error(s.str());
+    }
+
+    String_pair resstr = kav_scan_res_str(res);
+
+    syslog(LOG_DEBUG, "session: file scan finished; result: %s; returned to client: %s", resstr.first.c_str(), resstr.second.c_str());
+
+    snprintf(fdstr, sizeof(fdstr), "fd[%d]: ", fd);
+    return fdstr + resstr.second;
 }
 
 CALLBACK_RESULT AEKAVD::kav_callback(unsigned long, unsigned long, unsigned long, const char *, const char *, unsigned long, unsigned long, void *)
@@ -206,4 +239,25 @@ String_pair AEKAVD::kav_scan_res_str(KAV_RESULT res)
     }
 
     return String_pair(first, second);
+}
+
+void *AEKAVD::kav_reload_database(void*)
+{
+    syslog(LOG_DEBUG, "KAV databases reload started...");
+    HRESULT hr = kaveReloadDatabases();
+    if (SUCCEEDED(hr)){
+        Kav_info kavinfo;
+        kav_set_info(kavinfo);
+        syslog(LOG_DEBUG, "KAV databases reloaded successfully");
+        syslog(LOG_INFO, "KAV database info: number of records: %s; virus db release date: %s", kavinfo.num_records.c_str(), kavinfo.db_release_date.c_str());
+    }
+    else {
+        std::ostringstream s;
+        s << "failed to reload databases: " << hr;
+        throw std::runtime_error(s.str());
+    }
+	pthread_mutex_lock(&reload_database_mutex);
+	reload_database_processing = false;
+	pthread_mutex_unlock(&reload_database_mutex);
+	return NULL;
 }

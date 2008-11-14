@@ -36,7 +36,7 @@ AEKAVD::Pid_file::Pid_file(const std::string& f)
     }
 }
 
-AEKAVD::Pid_file::~Pid_file()
+void AEKAVD::Pid_file::Pid_file_remove()
 {
     unlink(fn.c_str());
 }
