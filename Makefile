@@ -11,7 +11,7 @@ src_files = aekavd.cc session.cc kav.cc pidfile.cc options.cc error.cc
 obj_files = $(src_files:.cc=.o)
 dep_files = $(src_files:.cc=.d)
 
-libs = -lsdk8l3 -ldl -lrt
+libs = -lkave8 -ldl -lrt
 
 # todo: fix kav dirs
 kav_include_dir = ../KAV_SDK8_L3/include

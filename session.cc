@@ -279,7 +279,7 @@ ssize_t AEKAVD::read_fd_data(struct fd_buf *buf)
                     syslog(LOG_INFO, "Unclaimed file descriptor received. closing");
                     close(buf->recvfd);
                 }
-                buf->recvfd = *(int *)CMSG_DATA(cmsg);
+                buf->recvfd = *(reinterpret_cast<int *>(CMSG_DATA(cmsg)));
                 syslog(LOG_DEBUG, "File descriptor received");
             }
         }

@@ -1,7 +1,7 @@
 #ifndef AEKAVD_POSIXISTREAM_H
 #define AEKAVD_POSIXISTREAM_H
 
-#include <stdafx/stdafx_istream.h>
+#include <sdkunix/istream.h>
 
 class posixIStream : public IStream
 {
@@ -56,7 +56,7 @@ public:
 
     // IStream Interface
 
-    virtual HRESULT Seek(/*[in]*/ LARGE_INTEGER dlibMove, /*[in]*/ int dwOrigin, /*[out]*/  ULARGE_INTEGER *plibNewPosition)
+    virtual HRESULT Seek(/*[in]*/ LARGE_INTEGER dlibMove, /*[in]*/ unsigned long dwOrigin, /*[out]*/  ULARGE_INTEGER *plibNewPosition)
     {
 
         if(!plibNewPosition)

@@ -23,7 +23,7 @@ namespace AEKAVD {
         std::string expire_date;
     };
 
-    extern void kav_open(const std::string& kavkeypath, const std::string& kavbasepath);
+    extern void kav_open(const std::string& kavkeypath, const std::string& kavbasepath, const std::string& kavtmppath);
     extern void kav_close();
     extern void kav_set_info(Kav_info&);
     extern std::string kav_scan_file(const std::string& filename, bool logviruses);

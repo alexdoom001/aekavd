@@ -43,14 +43,14 @@ namespace AEKAVD {
 }
 
 
-void AEKAVD::kav_open(const std::string& kavkeypath, const std::string& kavbasepath)
+void AEKAVD::kav_open(const std::string& kavkeypath, const std::string& kavbasepath, const std::string& kavtmppath)
 {
     syslog(LOG_DEBUG, "session: trying to initialize KAV; kavkeypath: %s; kavbasepath: %s", kavkeypath.c_str(), kavbasepath.c_str());
 
     unsigned long scannertype = KAV_SHT_INPROC | KAV_SHT_ENGINE_KLAV | KAV_SHT_ENGINE_KLAVEMU;
     PFNCALLBACK pfn = kav_callback;
 
-    HRESULT hr = kaveInitializeEx("/tmp", kavbasepath.c_str(), scannertype, 0, 0, 0, pfn, kavkeypath.c_str(), 1);
+    HRESULT hr = kaveInitializeEx(kavtmppath.c_str(), kavbasepath.c_str(), scannertype, 0, 0, 0, pfn, kavkeypath.c_str(), 1);
     if (FAILED(hr))
         error<std::invalid_argument>("KAV initialization failed", kav_init_res_str(hr));
 

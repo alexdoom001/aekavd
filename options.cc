@@ -41,6 +41,7 @@ namespace AEKAVD {
         KW_STREAM_LIMIT,
         KW_KAV_LICENCE_PATH, 
         KW_KAV_BASES_PATH,
+        KW_KAV_TMP_PATH,
         KW_DAEMON_MODE,
         KW_PID_FILE,
         KW_SYSLOG_PERROR,
@@ -86,6 +87,7 @@ namespace AEKAVD {
         std::string("stream-limit"),            // KW_STREAM_LIMIT
         std::string("kav-licence-path"),        // KW_KAV_LICENCE_PATH, 
         std::string("kav-bases-path"),          // KW_KAV_BASES_PATH,   
+        std::string("kav-tmp-path"),            // KW_KAV_TMP_PATH,
         std::string("daemon-mode"),             // KW_DAEMON_MODE,      
         std::string("pid-file"),                // KW_PID_FILE,         
         std::string("syslog-perror"),           // KW_SYSLOG_PERROR,    
@@ -135,6 +137,7 @@ AEKAVD::Options::Options(const std::string& fn)
       isdaemon(true),
       kavkeypath("/var/lib/kav/licences"),
       kavbasepath("/var/lib/kav/bases"),
+      kavtmppath("/tmp"),
       pidfile("/var/run/aekavd.pid"),
       syslogopts(LOG_PID|LOG_NDELAY),
       syslogfacility(LOG_DAEMON),
@@ -175,6 +178,11 @@ void AEKAVD::Options::set_kav_key_path(const std::string& v)
 void AEKAVD::Options::set_kav_base_path(const std::string& v)
 {
     kavbasepath = v;
+}
+
+void AEKAVD::Options::set_kav_tmp_path(const std::string& v)
+{
+    kavtmppath = v;
 }
 
 void AEKAVD::Options::set_listen_addr(uint32_t v)
@@ -304,6 +312,9 @@ void AEKAVD::set_option_value(int keyword, const std::string& val, Options *opti
         break;
     case KW_KAV_BASES_PATH:
         options->set_kav_base_path(val);
+        break;
+    case KW_KAV_TMP_PATH:
+        options->set_kav_tmp_path(val);
         break;
     case KW_DAEMON_MODE:
         set_daemon_mode(val, options);

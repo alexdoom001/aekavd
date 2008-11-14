@@ -26,6 +26,7 @@ namespace AEKAVD {
         const std::string& pid_file()        const;
         const std::string& kav_key_path()    const;
         const std::string& kav_base_path()   const;
+        const std::string& kav_tmp_path()    const;
         uint32_t           listen_addr()     const;
         uint16_t           listen_port()     const;
         const std::string& listen_socket()   const;
@@ -39,6 +40,7 @@ namespace AEKAVD {
         void set_pid_file(const std::string&);
         void set_kav_key_path(const std::string&);
         void set_kav_base_path(const std::string&);
+        void set_kav_tmp_path(const std::string&);
         void set_listen_addr(uint32_t);
         void set_listen_port(uint16_t);
         void set_socket(const std::string&);
@@ -54,6 +56,7 @@ namespace AEKAVD {
         bool        isdaemon;
         std::string kavkeypath;
         std::string kavbasepath;
+        std::string kavtmppath;
         std::string pidfile;
         int         syslogopts;
         int         syslogfacility;
@@ -71,6 +74,7 @@ namespace AEKAVD {
     inline const std::string& Options::pid_file()        const { return pidfile;        }
     inline const std::string& Options::kav_key_path()    const { return kavkeypath;     }
     inline const std::string& Options::kav_base_path()   const { return kavbasepath;    }
+    inline const std::string& Options::kav_tmp_path()    const { return kavtmppath;     }
     inline uint32_t           Options::listen_addr()     const { return naddr;          }
     inline uint16_t           Options::listen_port()     const { return port;           }
     inline const std::string& Options::listen_socket()   const { return unix_socket;    }

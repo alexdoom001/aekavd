@@ -116,7 +116,7 @@ int AEKAVD::main(int argc, char *argv[])
         Pid_file pidfile(options.pid_file());
         open_control_pipe();
         install_sig_hadlers();
-        kav_open(options.kav_key_path(), options.kav_base_path());
+        kav_open(options.kav_key_path(), options.kav_base_path(), options.kav_tmp_path());
 
         if(!options.kav_info_file().empty())
             log_and_save_kav_info(options.kav_info_file());
@@ -362,7 +362,7 @@ int AEKAVD::incoming_connection(int tcp_sock, int unix_sock, bool *reload_databa
                 break;
             } else if (tcp_sock != -1 && FD_ISSET(tcp_sock, &readfdset)) {
                 struct sockaddr clientaddr;
-                socklen_t len = NULL;
+                socklen_t len = 0;
                 if ((connsock = accept(tcp_sock, &clientaddr, &len)) == -1)
                     syslog(LOG_NOTICE, "accept error: %s", strerror(errno));
                 // todo: output client's address
@@ -370,7 +370,7 @@ int AEKAVD::incoming_connection(int tcp_sock, int unix_sock, bool *reload_databa
                 break;
             } else if (FD_ISSET(unix_sock, &readfdset)) {
                 struct sockaddr clientaddr;
-                socklen_t len = NULL;
+                socklen_t len = 0;
                 if ((connsock = accept(unix_sock, &clientaddr, &len)) == -1)
                     syslog(LOG_NOTICE, "accept error: %s", strerror(errno));
                 syslog(LOG_INFO, "got incoming unix-socket connection");
@@ -446,7 +446,7 @@ static int AEKAVD::set_timeout(timer_t timer, int timeout)
 
 void AEKAVD::sig_stop_handler(int signum)
 {
-    char buf[1] = { signum };
+    char buf[1] = { static_cast<char>(signum) };
     write(ctl_pipe[1], buf, 1);
 }
 
